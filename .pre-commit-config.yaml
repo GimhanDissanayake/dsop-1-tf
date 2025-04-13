@@ -1,0 +1,20 @@
+repos:
+- repo: https://github.com/gruntwork-io/pre-commit
+  rev: "v0.1.28" # Get the latest from: https://github.com/gruntwork-io/pre-commit/releases
+  hooks:
+    - id: tflint
+      args:
+        - "--call-module-type=all"
+        - "--config=.tflint.hcl"
+    - id: terraform-validate
+    - id: terraform-fmt
+- repo: https://github.com/antonbabenko/pre-commit-terraform
+  rev: v1.98.1 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+  hooks:
+    # Remove or comment out tfsec as Trivy covers its functionality
+    # - id: terraform_tfsec
+    - id: terraform_docs
+    - id: terraform_docs
+    - id: checkov
+      args:
+        - "--download-external-modules=true"
