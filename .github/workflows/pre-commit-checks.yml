@@ -1,0 +1,73 @@
+# This workflow runs pre-commit checks on pull requests
+name: Pre-commit Checks
+
+# Trigger workflow on pull request events to main branch
+# Only runs when PR is opened or updated
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
+
+# Set required permissions for the workflow
+permissions:
+  contents: read
+  pull-requests: write
+  contents: read  # Allow reading repository contents
+  pull-requests: write  # Allow commenting on pull requests
+
+jobs:
+  pre-commit-check:
+    # Use Ubuntu latest as the runner environment
+    runs-on: ubuntu-latest
+    # Only run if PR is from develop branch to main branch
+    if: github.base_ref == 'main' && github.head_ref == 'develop'
+    
+    steps:
+      # Check out the repository code
+      - uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Install pre-commit tool using pip
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pre-commit
+
+      # Initialize Terraform for any Terraform-related checks
+      - name: Initialize Terraform
+        run: terraform init
+
+      # Run pre-commit checks and save output to file
+      # The || true ensures the workflow continues even if checks fail
+      - name: Run pre-commit checks
+        run: |
+          pre-commit run -a --show-diff-on-failure > pre-commit-output.txt || true
+
+      # Format the pre-commit output into a markdown file for the PR comment
+      - name: Format pre-commit output
+        run: |
+          echo '### Pre-commit Check Results' > comment.md
+          echo '```' >> comment.md
+          cat pre-commit-output.txt >> comment.md
+          echo '```' >> comment.md
+
+      # Post the formatted output as a comment on the PR
+      # Uses GitHub Script action to interact with GitHub API
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const comment = fs.readFileSync('comment.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
