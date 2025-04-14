@@ -11,8 +11,6 @@ on:
 
 # Set required permissions for the workflow
 permissions:
-  contents: read
-  pull-requests: write
   contents: read  # Allow reading repository contents
   pull-requests: write  # Allow commenting on pull requests
 
