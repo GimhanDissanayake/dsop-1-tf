@@ -15,6 +15,6 @@ repos:
     # - id: terraform_tfsec
     - id: terraform_docs
     - id: terraform_docs
-    - id: checkov
+    - id: terraform_checkov
       args:
         - "--download-external-modules=true"
